@@ -1,4 +1,5 @@
 import Jet from './Jet.js';
+import Enemy from './Enemy.js';
 
 class Game1984{
     objects;
@@ -7,68 +8,77 @@ class Game1984{
     canvas;
     boardWidth;
     boardHeight;
-    _jet;
-    heldKeys;
+    pressedKeys;
+    objects;
+    isStop;
+    rafId;
+    interval;
     constructor(container) {
         this.container = container;
         const { width, height } = container.getBoundingClientRect();
         this.boardWidth = width;
         this.boardHeight = height;
-        this.objects = [];
-        this.heldKeys = {};
-        const canvas = document.createElement('canvas');
-        console.log(canvas);
-        
+        this.objects = { jet: {}, enemy: {}, jetMissile: {}, enemyMissile: {}};
+        this.pressedKeys = {};
+        const canvas = document.createElement('canvas');        
         this.canvas = canvas;
         this.context = canvas.getContext('2d');
 
         canvas.setAttribute('width', width);
         canvas.setAttribute('height', height);
-        container.append(canvas);
-        
+        container.append(canvas);    
     }
 
-    start = () =>{
-        this._jet = new Jet({canvas: this.canvas, context: this.context});
+    start = () => {
+        this.generateEnemy();
+        this.isStop = false;
+        this.initGame();
+        this.jet = new Jet(this);
         this._draw();
-        console.log(this.container);
         
         document.addEventListener('keydown', (ev) => {
-            this.heldKeys[ev.code] = true;
-            console.log(ev);
-            
-            if(ev.code === 'KeyA') {
-                this.objects.push(this._jet.shot());
+            if(ev.code === 'Space' && this.isStop) {
+                this.start();
             }
+
+            this.pressedKeys[ev.code] = true;
         });
 
         document.addEventListener('keyup', (ev) => {
-            this.heldKeys[ev.key] = false;
+            this.pressedKeys[ev.code] = false;
         })
     }
 
-    addCoin = () => {
+    initGame = () => {
+        this.objects = { jet: {}, enemy: {}, jetMissile: {}, enemyMissile: {}};
+    }
 
+    generateEnemy = () => {
+        this.interval = setInterval(() => {
+            new Enemy(this);
+        }, 200)
+        console.log(this.interval)
+    }
+
+    gameOver = () => {
+        this.isStop = true;
+        clearInterval(this.interval)
     }
 
     _draw = () => {
-        this.context.clearRect(0, 0, this.boardWidth, this.boardHeight);
-        const objs = [];
-        this.context.fillRect(this._jet.x, this._jet.y, this._jet.width, this._jet.height)
-        this._jet.move(this.heldKeys)
-
-        for(let obj of this.objects) {
-            
-            obj.move();
-            if(!obj.isOverflowed()) {
-                
-                objs.push(obj);
-                this.context.fillStyle = 'black';                
-                this.context.fillRect(obj.x, obj.y, obj.width, obj.height);
-            }
+        this.context.clearRect(0, 0, this.boardWidth, this.boardHeight);        
+        this.jet.print();
+        const { enemy, enemyMissile, jetMissile, jet } = this.objects;
+        const objs =  Object.values({...enemy, ...enemyMissile, ...jetMissile});
+        for(let obj of objs) {
+            obj.print();
         }
-        this.objects = objs;
-        requestAnimationFrame(this._draw);
+        
+        this.rafId = requestAnimationFrame(this._draw);
+        if(this.isStop) {
+            console.log('there')
+            cancelAnimationFrame(this.rafId)    
+        }    
     }
 }
 

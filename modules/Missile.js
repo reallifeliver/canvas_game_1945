@@ -2,19 +2,23 @@ import GameObject from './GameObject.js';
 
 class Missile extends GameObject {
 
-    direction
-    speed
-    constructor({direction, speed, size, x, y, canvas, context}) {
-        super({ width:size, height: size, x, y, canvas, context});
-
+    direction;
+    xSpeed;
+    ySpeed;
+    constructor({direction, xSpeed = 0, ySpeed, size, ...rest}) {        
+        super({ ...rest, width: size, height: size, type: direction === -1 ? 'jetMissile' : 'enemyMissile'});
         this.direction = direction;
-        this.speed = speed
-        console.log(this);
-        
+        this.xSpeed = xSpeed       
+        this.ySpeed = ySpeed
     }
 
-    move() {
-        this.y += this.speed * this.direction;
+    beforePrint() {  
+        this.move();
+    }
+
+    move() {        
+        this.y += this.ySpeed * this.direction;
+        this.x += this.xSpeed;
     }
 }
 

@@ -5,58 +5,85 @@ class Jet extends GameObject {
     
     xDirection;
     yDirection;
-
-    constructor({canvas, context}) {
+    constructor(param) {
         super({
+            ...param,
             width: 30,
             height: 40,
-            x: canvas.width / 2,
-            y: canvas.height - 30,
-            canvas,
-            context,
+            x: param.canvas.width / 2,
+            y: param.canvas.height - 30,
+            type: 'jet',
         })
-
         this.xDirection = 0;
         this.yDirection = 0;
+        this.type = 0;
+    } 
+
+    move() {        
+        this.x += 5 * this.getXDirection();
+        this.y += 5 * this.getYDirection();
+        this.preventOverflowedFromView();
     }
 
-    move(heldKeys) {        
-        if (heldKeys.ArrowUp) {
-            this.yDirection = -1;
-        } else if(heldKeys.ArrowDown) {
-            this.yDirection = 1;
+    getYDirection() {
+        let yDirection;
+        if (this.game.pressedKeys.ArrowUp) {
+            yDirection = -1;
+        } else if(this.game.pressedKeys.ArrowDown) {
+            yDirection = 1;
         } else {
-            this.yDirection = 0;
+            yDirection = 0;
         }
+        return yDirection;
+    }
 
-        if (heldKeys.ArrowLeft) {
-            this.xDirection = -1;
-        } else if (heldKeys.ArrowRight) {
-            this.xDirection = 1;
+    getXDirection() {
+        let xDirection;
+        if (this.game.pressedKeys.ArrowLeft) {
+            xDirection = -1;
+        } else if (this.game.pressedKeys.ArrowRight) {
+            xDirection = 1;
         } else {
-            this.xDirection = 0;
+            xDirection = 0;
         }
+        return xDirection;
+    }
 
-        this.x += 5 * this.xDirection;
-        this.y += 5 * this.yDirection;
-
+    preventOverflowedFromView() {
         if(this.x < 0 ) {
             this.x = 0;
-        } else if (this.x + this.width > this.canvas.width) {
-            this.x = this.canvas.width - this.width;
+        } else if (this.x + this.width > this.game.canvas.width) {
+            this.x = this.game.canvas.width - this.width;
         }
-
 
         if(this.y < 0 ) {
             this.y = 0;
-        } else if (this.y + this.height > this.canvas.height) {
-            this.y = this.canvas.height - this.height
+        } else if (this.y + this.height > this.game.canvas.height) {
+            this.y = this.game.canvas.height - this.height
         }
     }
 
+    beforePrint() {     
+        this.shot();
+        this.checkCrashedWith
+        this.checkCrushWithEnemy();
+    }
+
     shot = () =>  {
-        console.log('shot', this.x, this.y);
-        return new Missile({direction: -1, size: 10, x: this.x, y: this.y, context: this.context, canvas: this.canvas, speed: 10});
+        if(!this.game.pressedKeys.KeyA) return;
+        new Missile({...this.game, direction: -1, size: 10, ySpeed: 10, y: this.y, x: this.x + this.width / 2 - 5});
+        new Missile({...this.game, direction: -1, size: 10, ySpeed: 10, y: this.y, xSpeed: 2, x: this.x + this.width / 2 - 5});
+        new Missile({...this.game, direction: -1, size: 10, ySpeed: 10, y: this.y, xSpeed: -2, x: this.x + this.width / 2 - 5});
+    }
+
+    checkCrushWithEnemy() {
+        const {enemy, enemyMissle} = this.game.objects;
+        const enemyObjs = Object.values({...enemy, ...enemyMissle}).sort((a, b) => b.y - a.y );
+        for(let obj of enemyObjs) {
+            if(this.isCrushedWith(obj)) {
+                this.game.gameOver();
+            }
+        }
     }
 }
 

@@ -6,22 +6,36 @@ class GameObject {
     y;
     width;
     height;
-    context;
-    canvas;
-
-    constructor({type, x, y, width, height, context, canvas}) {
+    game;
+    constructor({type, x, y, width, height, ...game}) {
         this.type = type;
         this.x = x; 
         this.y = y;
         this.width = width;
         this.height = height;
-        this.context = context;
-        this.canvas = canvas;
         this.objId = generatedId++;
+        this.game = game;
+        this.game.objects[type][this.objId] = this;
     }
     
-    draw(){
-        this.context.fillRect(this.x, this.y, this.width, this.height);
+    print(){
+        // console.log(Object.values(this.objects).length);
+        this.beforePrint();
+        this.move();
+        
+        if(this.isOverflowed()) {        
+            this.destroy();
+        } else {
+            this.game.context.fillStyle = 'black';                
+            this.game.context.fillRect(this.x, this.y, this.width, this.height);
+        }
+    }
+
+    destroy() {
+        delete this.game.objects[this.type][this.objId];        
+    }
+
+    beforePrint() {
     }
 
     move() {
@@ -39,10 +53,11 @@ class GameObject {
 
     isOverflowed() {
         const thisPos = this.getFourSidesPos();
+        
         return (
             thisPos.rightX < 0 ||
-            thisPos.leftX >  this.canvas.width ||
-            thisPos.top > this.canvas.height ||
+            thisPos.leftX >  this.game.canvas.width ||
+            thisPos.topY > this.game.canvas.height ||
             thisPos.bottomY < 0
         )
     }
