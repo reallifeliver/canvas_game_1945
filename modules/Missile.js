@@ -13,12 +13,26 @@ class Missile extends GameObject {
     }
 
     beforePrint() {  
+        this.checkCrushWidhEnemy();
         this.move();
     }
 
     move() {        
         this.y += this.ySpeed * this.direction;
         this.x += this.xSpeed;
+    }
+
+    checkCrushWidhEnemy() {
+        if(this.direction === -1) {
+            for(let enemy of this.game.getEnemyList()) {
+                if(enemy.y + enemy.height < this.y) return;
+                if(enemy.type === 'enemyMissile') continue;
+                if(this.isCrushedWith(enemy)){
+                    this.destroy();
+                    enemy.hitByMissile();
+                }
+            }
+        }
     }
 }
 

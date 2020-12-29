@@ -10,9 +10,12 @@ class Game1984{
     boardHeight;
     pressedKeys;
     objects;
+    enemyList;
     isStop;
     rafId;
     interval;
+    score;
+    maxScore;
     constructor(container) {
         this.container = container;
         const { width, height } = container.getBoundingClientRect();
@@ -22,8 +25,10 @@ class Game1984{
         this.pressedKeys = {};
         const canvas = document.createElement('canvas');        
         this.canvas = canvas;
+        this.score = 0;
+        this.maxScore = 0;
         this.context = canvas.getContext('2d');
-
+        this.enemyList = [];
         canvas.setAttribute('width', width);
         canvas.setAttribute('height', height);
         container.append(canvas);    
@@ -51,6 +56,8 @@ class Game1984{
 
     initGame = () => {
         this.objects = { jet: {}, enemy: {}, jetMissile: {}, enemyMissile: {}};
+
+        this.score = 0;
     }
 
     generateEnemy = () => {
@@ -65,18 +72,36 @@ class Game1984{
         clearInterval(this.interval)
     }
 
+    getEnemyList = () => {
+        return this.enemyList;
+    }
+
+    addScore = (score) => {
+        this.score += score;
+        if(this.maxScore <= this.score) {
+            this.maxScore = this.score;
+        }
+    }
+
     _draw = () => {
-        this.context.clearRect(0, 0, this.boardWidth, this.boardHeight);        
-        this.jet.print();
+        this.context.clearRect(0, 0, this.boardWidth, this.boardHeight);
+        this.context.save();
+        this.context.font = '20px serif';        
+        this.context.fillStyle = 'red'
+        this.context.fillText(`Highest: ${this.maxScore}`, 30, 30)
+        this.context.fillStyle = 'blue';
+        this.context.fillText(`Current: ${this.score}`, 30, 50); 
+        this.context.restore();
         const { enemy, enemyMissile, jetMissile, jet } = this.objects;
-        const objs =  Object.values({...enemy, ...enemyMissile, ...jetMissile});
+        this.enemyList = Object.values({...enemy, ...enemyMissile}).sort((a, b) => b.y - a.y );        
+
+        const objs =  Object.values({...enemy, ...enemyMissile, ...jetMissile, ...jet});
         for(let obj of objs) {
             obj.print();
         }
         
         this.rafId = requestAnimationFrame(this._draw);
         if(this.isStop) {
-            console.log('there')
             cancelAnimationFrame(this.rafId)    
         }    
     }

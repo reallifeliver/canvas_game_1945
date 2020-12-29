@@ -3,8 +3,9 @@ import Missile from './Missile.js';
 
 class Enemy extends GameObject {
 
-    speed;
-
+    speed;  
+    hp;
+    interval;
     constructor(param) {
 
         const size = Math.round(Math.random() * 3)*20;
@@ -12,6 +13,7 @@ class Enemy extends GameObject {
         if(x + size > param.canvas.width) {
             x +- param.canvas.width - size;
         }
+
         super({
             ...param,
             width: size,
@@ -20,17 +22,39 @@ class Enemy extends GameObject {
             x: x,
             type: 'enemy',
         });
-
+        this.point = size;
+        this.hp = size / 2;
         this.game.objects.enemy[this.objId] = this;
+        this.before = new Date().getTime();
+        this.shot();
+    }
+
+    beforePrint() {
+        this.current = new Date().getTime();
+        if(this.current - this.before >= 700) {
+            this.shot();
+            this.before = this.current;
+        }
+    }
+
+    hitByMissile() {
+        --this.hp;
+        if(this.hp <= 0) {
+            this.destroyed = true;
+            this.destroy();
+            this.game.addScore(this.point);
+        }
+    }
+
+    shot = () => {       
+        const xSpeed = 2 - Math.ceil(Math.random() * 3);        
+        new Missile({...this.game, direction: 1, size: 10, ySpeed: 3, xSpeed, y: this.y + this.height, x: this.x + this.width/2});
     }
 
     move() {
         this.y -= -5;
     }
 
-    shot() {
-        // return new Missile(this, size: 10, )
-    }
 }
 
-export default Enemy;
+export default Enemy;;

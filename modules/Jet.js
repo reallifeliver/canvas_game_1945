@@ -65,22 +65,23 @@ class Jet extends GameObject {
 
     beforePrint() {     
         this.shot();
-        this.checkCrashedWith
         this.checkCrushWithEnemy();
     }
 
     shot = () =>  {
         if(!this.game.pressedKeys.KeyA) return;
-        new Missile({...this.game, direction: -1, size: 10, ySpeed: 10, y: this.y, x: this.x + this.width / 2 - 5});
-        new Missile({...this.game, direction: -1, size: 10, ySpeed: 10, y: this.y, xSpeed: 2, x: this.x + this.width / 2 - 5});
-        new Missile({...this.game, direction: -1, size: 10, ySpeed: 10, y: this.y, xSpeed: -2, x: this.x + this.width / 2 - 5});
+        requestAnimationFrame(() => {
+            new Missile({...this.game, direction: -1, size: 10, ySpeed: 10, y: this.y, x: this.x + this.width / 2 - 5});
+            new Missile({...this.game, direction: -1, size: 10, ySpeed: 10, y: this.y, xSpeed: 2, x: this.x + this.width / 2 - 5});
+            new Missile({...this.game, direction: -1, size: 10, ySpeed: 10, y: this.y, xSpeed: -2, x: this.x + this.width / 2 - 5});
+        })
+    
     }
 
-    checkCrushWithEnemy() {
-        const {enemy, enemyMissle} = this.game.objects;
-        const enemyObjs = Object.values({...enemy, ...enemyMissle}).sort((a, b) => b.y - a.y );
-        for(let obj of enemyObjs) {
-            if(this.isCrushedWith(obj)) {
+    checkCrushWithEnemy() {                
+        for (let obj of this.game.getEnemyList()) {
+            if (obj.y + obj.height < this.y) return; // jet의 y보다 위 쪽에 위치한 상태이면 더이상 체크할 필요 없음
+            if (this.isCrushedWith(obj)) {
                 this.game.gameOver();
             }
         }
